@@ -4,14 +4,25 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef __MINGW32__
+#define htole64(a) ((a))
+#define htole32(a) ((a))
+#define le64toh(a) ((a))
+#define le32toh(a) ((a))
+#else
 #include <fts.h>
+#endif
 #include <errno.h>
 #include "legArchive.h"
 
 #define READBUFF 512
 
 void easymkdir(const char* _path){
+	#ifdef __MINGW32__
+	int _mkRes = mkdir(_path);
+	#else
 	int _mkRes = mkdir(_path,0777);
+	#endif
 	if (_mkRes==-1 && errno!=EEXIST){
 		fprintf(stderr,"failed to make directory %s\n",_path);
 		exit(1);
@@ -137,13 +148,13 @@ void extractArchive(const char* _filename, const char* _destDir, char _caseSensi
 	fclose(fp);
 	freeArchive(&_arch);
 }
-
 struct writeEntry{
 	char* filename;
 	int64_t pos;
 	int32_t len;
 	struct writeEntry* next;
 };
+#include "windowsstuff.h"
 void makeArchive(const char* _sourceDir, const char* _destFile){
 	char* paths[] = {(char*)_sourceDir,NULL};
 	FILE* _out = fopen(_destFile,"wb");
@@ -161,6 +172,16 @@ void makeArchive(const char* _sourceDir, const char* _destFile){
 		exit(1);
 	}
 	//
+	#if __MINGW32__
+	_wout=_out;
+	struct writeEntry* e=windowsscandir(_sourceDir);
+	if (!e){
+		fprintf(stderr,"windowsscandir failed\n");
+		exit(1);
+	}
+	struct writeEntry _firstEntry=*e;
+	int32_t _totalFiles=_wtotalFiles;
+	#else
 	FTS *ftsp = fts_open(paths,FTS_LOGICAL,NULL);
 	if(ftsp==NULL){
 		perror("fts_open");
@@ -195,7 +216,7 @@ void makeArchive(const char* _sourceDir, const char* _destFile){
 			struct writeEntry* _new = malloc(sizeof(struct writeEntry));
 			_new->filename = _writeName;
 			_new->pos = ftell(_out);
-			
+			_new->next=NULL;
 			// copy file data
 			FILE* _in = fopen(ent->fts_path,"rb");
 			if (_in==NULL){
@@ -211,6 +232,7 @@ void makeArchive(const char* _sourceDir, const char* _destFile){
 		}
 	}
 	fts_close(ftsp);
+	#endif
 
 	// write file table
 	int64_t _tableStart = ftell(_out);

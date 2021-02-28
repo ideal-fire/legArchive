@@ -4,6 +4,13 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "legArchive.h"
+#ifdef __MINGW32__
+#define htole64(a) ((a))
+#define htole32(a) ((a))
+#define le64toh(a) ((a))
+#define le32toh(a) ((a))
+ssize_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp);
+#endif
 //////
 char* strnstr(char* _big, char* _small, int _length){
 	int _cachedStrlen = strlen(_small);
