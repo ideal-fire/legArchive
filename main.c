@@ -62,15 +62,10 @@ void easyOpenArchive(const char* _filename, char _caseSensitive, struct legArchi
 }
 char endsInSlash(const char* _dirString){
 	int _dirLen = strlen(_dirString);
-	if (_dirString[_dirLen-1]=='/'){
-		return 1;
-	}
 	#ifdef _WIN32
-		if (_dirString[_dirLen-1]=='\\'){
-			return 1;
-		}
+	return _dirString[_dirLen-1]=='/' || _dirString[_dirLen-1]=='\\';
 	#endif
-	return 0;
+	return _dirString[_dirLen-1]=='/';
 }
 char* fileInDir(const char* _dirString, const char* _addThis){
 	int _dirLen = strlen(_dirString);

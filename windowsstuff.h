@@ -15,7 +15,14 @@ int windowsscansinglefile(const char *fpath, const struct stat *sb,int typeflag,
 			exit(1);
 		}
 		// get filename for archive
-		char* _writeName = strdup(&(fpath[_wdirprefixlen]));
+		char* _writeName;
+		{
+			if (fpath[_wdirprefixlen]=='/'){
+				_writeName=strdup(&(fpath[_wdirprefixlen+1]));
+			}else{
+				_writeName=strdup(&(fpath[_wdirprefixlen]));
+			}
+		}
 		replaceAllChar(_writeName,'\\','/'); // backslashes unsupported in filename
 		// init new list entry
 		struct writeEntry* _new = malloc(sizeof(struct writeEntry));

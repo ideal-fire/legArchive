@@ -5,6 +5,8 @@ LDFLAGS =
 CFLAGS = -Wall
 OUTNAME = a.out
 
+PREFIX = /usr/local
+
 $(OUTNAME): $(obj)
 	$(CC) -o $(OUTNAME) $^ $(CFLAGS) $(LDFLAGS)
 
@@ -15,6 +17,10 @@ clean:
 .PHONY: depend
 depend:
 	makedepend -Y $(src)
+
+install: $(OUTNAME)
+	install -d $(DESTDIR)$(PREFIX)/bin/
+	install -m 755 a.out $(DESTDIR)$(PREFIX)/bin/legarchive
 
 # DO NOT DELETE
 
